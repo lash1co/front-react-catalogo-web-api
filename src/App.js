@@ -7,7 +7,16 @@ import ProductoService from './Servicios/ProductoService';
 import CategoriaService from './Servicios/CategoriaService';
 import FormCategoria from './Componentes/FormCategoria';
 import ListCategoria from './Componentes/ListCategoria';
+import { FormPagination } from './Componentes/FormPagination';
 
+const ModelPagination = {
+  CurrentPage: 1,
+  TotalItems: 0,
+  TotalPages: 1,
+  TotalItemsInPage: 0,
+  FirstItem: 0,
+  LastItem: 0,
+};
 
 function App() {
   const [productos, setProductos] = useState([]);
@@ -16,21 +25,34 @@ function App() {
   const [mostrarModalProducto, setMostrarModalProducto] = useState(false);
   const [editarCategoria, setEditarCategoria] = useState(null);
   const [editarProducto, setEditarProducto] = useState(null);
+  const [paginationProductos, setPaginationProductos] = useState(ModelPagination);
+  const [paginationCategorias, setPaginationCategorias] = useState(ModelPagination);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [order, setOrder] = useState('name_asc');
+
   const productoService = new ProductoService();
   const categoriaService = new CategoriaService();
 
   const actualizarDatos = () => {
-    productoService.obtenerProductos()
-      .then((data) => setProductos(data))
+    productoService.buscarProductos(query,order,paginationProductos,pageSize)
+      .then((data) => {
+        setProductos(data.Productos);
+        setPaginationProductos(data.Pagination);
+      })
       .catch((error) => console.error(error));
     categoriaService.obtenerCategorias()
-      .then((data) => setCategorias(data))
+      .then((data) => {
+        setCategorias(data);
+      })
       .catch((error) => console.error(error));
   };
 
   useEffect(() => {
     actualizarDatos();
-  }, []);
+  }, [currentPage, pageSize]);
+
 
   const handleGuardarProducto = (product) => {
       productoService.agregarProducto(product)
@@ -67,11 +89,12 @@ function App() {
     }
   };
 
-  const handleSearchProducto = (searchTerm, order) => {
-    productoService.buscarProductos(searchTerm, order)
+  const handleSearchProducto = (searchTerm, order, page, pageSize) => {
+    productoService.buscarProductos(searchTerm, order, page, pageSize)
       .then((data) => {
         const newArray = data;
-        setProductos(newArray);
+        setProductos(newArray.Productos);
+        setPaginationProductos(newArray.Pagination);
       })
       .catch((error) => console.error(error));
   };
@@ -121,12 +144,32 @@ function App() {
     setMostrarModalProducto(!mostrarModalProducto);
   };
 
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // reset page to 1 when page size changes
+    setPaginationProductos({ ...paginationProductos, CurrentPage: 1 }); // update CurrentPage in pagination
+    setPaginationCategorias({ ...paginationCategorias, CurrentPage: 1 }); // update CurrentPage in pagination
+  };
+
   return (
     <div className="App">
       <Container>
         <Row className='mt-5'>
           <Col sm="12">
             <center><h1>Catalogo Web de Productos</h1></center>
+          </Col>
+        </Row>
+        <Row className='mt-5'>
+          <Col sm="12">
+            <Card>
+              <CardHeader><h1>Configuración de Página</h1></CardHeader>
+              <CardBody>
+                <FormPagination 
+                  pageSize = {pageSize}
+                  setPageSize = {handlePageSizeChange}
+                />
+              </CardBody>
+            </Card>
           </Col>
         </Row>
         <hr></hr>
@@ -142,6 +185,8 @@ function App() {
                 }>Nueva Categoria</Button>
                 <hr></hr>
                 <ListCategoria
+                  pageSize = {pageSize}
+                  setPageSize = {setPageSize}
                   categorias={categorias}
                   setEditar={setEditarCategoria}
                   mostrarModal={mostrarModalCategoria}
@@ -160,6 +205,12 @@ function App() {
                 }>Nuevo Producto</Button>
                 <hr></hr>
                 <ListProducto 
+                  query = {query}
+                  setQuery={setQuery}
+                  order={order}
+                  setOrder={setOrder}
+                  pagination = {paginationProductos} 
+                  pageSize = {pageSize}
                   productos={productos}
                   onSearch={handleSearchProducto}
                   setEditar={setEditarProducto}

@@ -16,8 +16,8 @@ class ProductoService {
       return data;
     }
 
-    async buscarProductos(query, orderBy){
-      const response = await fetch(`${this.baseURL}?q=${query}&order=${orderBy}`);
+    async buscarProductos(query, orderBy,page,pageSize){
+      const response = await fetch(`${this.baseURL}?q=${query}&order=${orderBy}&page=${page}&pageSize=${pageSize}`);
       const data = await response.json();
       return data;
     }
