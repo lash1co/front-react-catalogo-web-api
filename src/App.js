@@ -28,7 +28,6 @@ function App() {
   const [paginationProductos, setPaginationProductos] = useState(ModelPagination);
   const [paginationCategorias, setPaginationCategorias] = useState(ModelPagination);
   const [pageSize, setPageSize] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState('');
   const [order, setOrder] = useState('name_asc');
 
@@ -36,22 +35,23 @@ function App() {
   const categoriaService = new CategoriaService();
 
   const actualizarDatos = () => {
-    productoService.buscarProductos(query,order,paginationProductos,pageSize)
+    productoService.buscarProductos(query,order,paginationProductos.CurrentPage,pageSize)
       .then((data) => {
         setProductos(data.Productos);
         setPaginationProductos(data.Pagination);
       })
       .catch((error) => console.error(error));
-    categoriaService.obtenerCategorias()
+    categoriaService.obtenerCategorias(paginationCategorias.CurrentPage,pageSize)
       .then((data) => {
-        setCategorias(data);
+        setCategorias(data.Categorias);
+        setPaginationCategorias(data.Pagination);
       })
       .catch((error) => console.error(error));
   };
 
   useEffect(() => {
     actualizarDatos();
-  }, [currentPage, pageSize]);
+  }, [pageSize]);
 
 
   const handleGuardarProducto = (product) => {
@@ -146,9 +146,18 @@ function App() {
 
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
-    setCurrentPage(1); // reset page to 1 when page size changes
     setPaginationProductos({ ...paginationProductos, CurrentPage: 1 }); // update CurrentPage in pagination
     setPaginationCategorias({ ...paginationCategorias, CurrentPage: 1 }); // update CurrentPage in pagination
+  };
+
+  const handleSearchCategoria = (noquery, noorder, page, pageSize) =>{
+    categoriaService.obtenerCategorias(page, pageSize)
+      .then((data) => {
+        const newArray = data;
+        setCategorias(newArray.Categorias);
+        setPaginationCategorias(newArray.Pagination);
+      })
+      .catch((error) => console.error(error));
   };
 
   return (
@@ -172,7 +181,6 @@ function App() {
             </Card>
           </Col>
         </Row>
-        <hr></hr>
         <Row className='mt-5'>
           <Col sm='12'>
             <Card>
@@ -185,9 +193,12 @@ function App() {
                 }>Nueva Categoria</Button>
                 <hr></hr>
                 <ListCategoria
+                  query = ''
+                  order=''
+                  pagination = {paginationCategorias} 
                   pageSize = {pageSize}
-                  setPageSize = {setPageSize}
                   categorias={categorias}
+                  onSearch={handleSearchCategoria}
                   setEditar={setEditarCategoria}
                   mostrarModal={mostrarModalCategoria}
                   setMostrarModal={setMostrarModalCategoria}

@@ -1,6 +1,15 @@
+import React, { useState, useEffect } from 'react';
 import { Table, Button } from 'reactstrap';
+import { Paginator } from './Paginator';
 
-function ListCategoria({ categorias, setEditar, mostrarModal, setMostrarModal, onDelete}) {
+function ListCategoria({ query, order, pagination, pageSize, categorias, onSearch, setEditar, mostrarModal, setMostrarModal, onDelete}) {
+  const [currentPage, setCurrentPage] = useState(pagination.CurrentPage);
+
+  useEffect(() => {
+    if(currentPage != pagination.CurrentPage){
+      setCurrentPage(pagination.CurrentPage);
+    }
+  }, [currentPage, pagination]);
 
     const enviarDato=(categoria)=>{
         setEditar(categoria);
@@ -9,6 +18,19 @@ function ListCategoria({ categorias, setEditar, mostrarModal, setMostrarModal, o
 
   return (
     <div>
+      <Paginator
+        setCurrentPage={setCurrentPage}
+        onSearch={onSearch}
+        query={query}
+        order={order}
+        pageSize={pageSize}
+        TotalPages={pagination.TotalPages}
+        CurrentPage={currentPage}
+        TotalItemsInPage={pagination.TotalItemsInPage}
+        FirstItem={pagination.FirstItem}
+        LastItem={pagination.LastItem}
+        TotalItems={pagination.TotalItems}
+      />
       <Table striped responsive>
         <thead>
           <tr>

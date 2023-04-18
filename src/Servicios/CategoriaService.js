@@ -4,8 +4,8 @@ class CategoriaService {
       this.baseURL = "http://localhost:51277/api/Categoria";
     }
   
-    async obtenerCategorias() {
-      const response = await fetch(this.baseURL);
+    async obtenerCategorias(page,pageSize) {
+      const response = await fetch(`${this.baseURL}?page=${page}&pageSize=${pageSize}`);
       const data = await response.json();
       return data;
     }

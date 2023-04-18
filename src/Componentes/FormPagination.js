@@ -3,7 +3,9 @@ import { Form, FormGroup, Input, Label} from 'reactstrap'
 
 function FormPagination({pageSize, setPageSize}){
 
-    const actualizarPagination = (e) => setPageSize(parseInt(e.target.value));
+    const actualizarPagination = (e) => {
+        setPageSize(parseInt(e.target.value));
+    };
     const onSubmit = (e) => e.preventDefault();; 
     return (
         <Form onSubmit={onSubmit}>
